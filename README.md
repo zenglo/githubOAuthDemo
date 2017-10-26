@@ -1,2 +1,2 @@
-# githubOAuthTest
-github OAuth Test
+# githubOAuthDemo
+github OAuth Demo
