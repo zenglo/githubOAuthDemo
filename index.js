@@ -31,11 +31,14 @@ app.get('/user', function (req, res) {
         return res.redirect("/");
     }
     var loginInfo = getLoginInfo(req);
-    var result = {
-        msg: "已登录成功！！！",
-        user: loginInfo.user
-    }
-    res.json(result);
+    var jsonStr = JSON.stringify(loginInfo.user, null, 2);
+    var body = "<div>";
+    body += ("登录成功，获取到的GitHub用户信息如下：");
+    body += ("<br />");
+    body += ("<pre style='word-wrap: break-word; white-space: pre-wrap;'>" + jsonStr + "</pre>");
+    body += ("<div><a href='/logout'>注销登录</a></div>");
+    body += "</div>";
+    res.send(body);
 })
 
 app.get('/logout', function (req, res) {
