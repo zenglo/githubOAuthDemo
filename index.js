@@ -19,29 +19,31 @@ var webRootUrl = "http://oauthtest.zenglong.top:8085"; //注册github OAuth App�
 var getCode_redirect_uri = '/oauthcode.do';
 var app_UserAgent = "OAuthDemo"
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     if (isLogin(req)) {
         return res.redirect("/user");
     }
     res.sendFile(__dirname + "/public/" + "index.html");
 })
 
-app.get('/user', function(req, res) {
+app.get('/user', function (req, res) {
     if (!isLogin(req)) {
         return res.redirect("/");
     }
     var loginInfo = getLoginInfo(req);
-    res.write(loginInfo.user);
-    res.write("<div><a href='/logout'>注销</a></div>");
-    res.end();
+    var result = {
+        msg: "已登录成功！！！",
+        user: loginInfo.user
+    }
+    res.json(result);
 })
 
-app.get('/logout', function(req, res) {
+app.get('/logout', function (req, res) {
     logout(req);
     res.redirect("/");
 })
 
-app.get('/githubLogin.do', function(req, res) {
+app.get('/githubLogin.do', function (req, res) {
     if (isLogin(req)) {
         return res.redirect("/user");
     }
@@ -54,7 +56,7 @@ app.get('/githubLogin.do', function(req, res) {
 });
 
 //github重定向回redirect_uri，并回传code和state
-app.get(getCode_redirect_uri, function(req, res) {
+app.get(getCode_redirect_uri, function (req, res) {
     if (isLogin(req)) {
         return res.redirect("/user");
     }
@@ -76,7 +78,7 @@ app.get(getCode_redirect_uri, function(req, res) {
             'User-Agent': app_UserAgent
         },
         form: tokenReq
-    }, function(err, r, tokenbody) {
+    }, function (err, r, tokenbody) {
         if (err) {
             console.error('failed:', err);
             res.redirect("/");
@@ -99,7 +101,7 @@ app.get(getCode_redirect_uri, function(req, res) {
             headers: {
                 'User-Agent': app_UserAgent
             }
-        }, function(err, r, body) {
+        }, function (err, r, body) {
             if (err) {
                 console.error('failed:', err);
                 res.redirect("/");
@@ -109,12 +111,7 @@ app.get(getCode_redirect_uri, function(req, res) {
             if (userObj.login) {
                 console.log(userObj);
                 login(req, tokenObj, userObj);
-                var result = {
-                    msg: "已登录成功！！！",
-                    user: userObj
-                }
-                res.json(result);
-
+                return res.redirect("/user");
             } else {
                 console.error('failed:', userObj);
                 var result = {
@@ -146,7 +143,7 @@ function logout(req) {
     req.session.destroy();
 }
 
-var server = app.listen(8085, function() {
+var server = app.listen(8085, function () {
 
     var host = server.address().address
     var port = server.address().port
