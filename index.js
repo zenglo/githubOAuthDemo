@@ -6,8 +6,7 @@ var uuidv4 = require('uuid/v4');
 var app = express();
 
 app.use(session({
-    secret: "OAuth Demo",
-    cookie: { secure: true }
+    secret: "OAuthDemo",
 }));
 app.use(express.static('public'));
 app.set("json spaces", 2)
@@ -18,18 +17,18 @@ var webRootUrl = "http://oauthtest.zenglong.top:8085"; //注册github OAuth App�
 
 
 var getCode_redirect_uri = '/oauthcode.do';
-var app_UserAgent = "OAuth Demo"
-app.get('/githubLogin.do', function(req, res) {
+var app_UserAgent = "OAuthDemo"
+app.get('/githubLogin.do', function (req, res) {
     req.session.oauthState = uuidv4();
     var authUrl = 'https://github.com/login/oauth/authorize?';
     authUrl += "client_id=" + encodeURIComponent(client_id);
     authUrl += "&redirect_uri=" + encodeURIComponent(webRootUrl + getCode_redirect_uri);
-    authUrl += "&state=" + req.session.oauthState;
+    authUrl += "&state=" + encodeURIComponent(req.session.oauthState);
     res.redirect(authUrl);
 });
 
 //github重定向回redirect_uri，并回传code和state
-app.get(getCode_redirect_uri, function(req, res) {
+app.get(getCode_redirect_uri, function (req, res) {
     if (req.session.oauthState !== req.query.state) {
         res.redirect("/");
         return;
@@ -49,28 +48,58 @@ app.get(getCode_redirect_uri, function(req, res) {
             'User-Agent': app_UserAgent
         },
         form: tokenReq
-    }, function(e, r, tokenbody) {
-        var tokenObj = qs.parse(tokenbody); //token
+    }, function (err, r, tokenbody) {
+        if (err) {
+            console.error('failed:', err);
+            res.redirect("/");
+            return;
+        }
+        var tokenObj = qs.parse(tokenbody);
+        if (tokenObj.error) {
+            console.error('failed:', tokenObj);
+            var result = {
+                msg: "登录失败！！！",
+                response: tokenObj
+            }
+            res.json(result);
+            return;
+        }
+        //token获取成功，app内应保存token以在后续免登陆
         //获取user信息
         request.get({
             url: "https://api.github.com/user?access_token=" + tokenObj.access_token,
             headers: {
                 'User-Agent': app_UserAgent
             }
-        }, function(e, r, body) {
-            var userObj = JSON.parse(body);
-            console.log(userObj);
-            var result = {
-                msg: "登录成功！！！",
-                user: userObj
+        }, function (err, r, body) {
+            if (err) {
+                console.error('failed:', err);
+                res.redirect("/");
+                return;
             }
-            res.json(result);
+            var userObj = JSON.parse(body);
+            if (userObj.login) {
+                console.log(userObj);
+                var result = {
+                    msg: "登录成功！！！",
+                    user: userObj
+                }
+                res.json(result);
+
+            } else {
+                console.error('failed:', userObj);
+                var result = {
+                    msg: "登录失败！！！",
+                    response: userObj
+                }
+                res.json(result);
+            }
         });
     });
 });
 
 
-var server = app.listen(8085, function() {
+var server = app.listen(8085, function () {
 
     var host = server.address().address
     var port = server.address().port
