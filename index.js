@@ -11,6 +11,7 @@ var webRootUrl = "http://oauthtest.zenglong.top:8085"; //注册github OAuth App�
 
 
 var getCode_redirect_uri = '/oauthcode.do';
+var app_UserAgent = "OAuth Demo"
 app.get('/githubLogin.do', function(req, res) {
     var authUrl = 'https://github.com/login/oauth/authorize?';
     authUrl += "client_id=" + encodeURIComponent(client_id);
@@ -19,12 +20,12 @@ app.get('/githubLogin.do', function(req, res) {
     res.redirect(authUrl);
 });
 
+//github重定向到redirect_uri，并回传code
 app.get(getCode_redirect_uri, function(req, res) {
     var response = {
         "code": req.query.code,
         "state": req.query.state
     };
-
     var tokenReq = {
         "client_id": client_id,
         "client_secret": client_secret,
@@ -33,9 +34,22 @@ app.get(getCode_redirect_uri, function(req, res) {
         "state": req.query.state
     };
     console.log(tokenReq);
-    request.post({ url: "https://github.com/login/oauth/access_token", form: tokenReq }, function(e, r, tokenbody) {
+    //获取token
+    request.post({
+        url: "https://github.com/login/oauth/access_token",
+        headers: {
+            'User-Agent': app_UserAgent
+        },
+        form: tokenReq
+    }, function(e, r, tokenbody) {
         var tokenObj = qs.parse(tokenbody); //token
-        request.get("https://api.github.com/user?access_token=" + tokenObj.access_token, function(e, r, body) {
+        //获取user信息
+        request.get({
+            url: "https://api.github.com/user?access_token=" + tokenObj.access_token,
+            headers: {
+                'User-Agent': app_UserAgent
+            }
+        }, function(e, r, body) {
             var tokenObj = JSON.parse(body);
             console.log(tokenObj);
             res.send(tokenObj);
