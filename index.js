@@ -1,8 +1,14 @@
 var express = require('express');
 var request = require("request");
-var qs = require('querystring')
+var qs = require('querystring');
+var session = require('express-session');
+var uuidv4 = require('uuid/v4');
 var app = express();
 
+app.use(session({
+    secret: "OAuth Demo",
+    cookie: { secure: true }
+}));
 app.use(express.static('public'));
 app.set("json spaces", 2)
 
@@ -14,18 +20,19 @@ var webRootUrl = "http://oauthtest.zenglong.top:8085"; //注册github OAuth App�
 var getCode_redirect_uri = '/oauthcode.do';
 var app_UserAgent = "OAuth Demo"
 app.get('/githubLogin.do', function(req, res) {
+    req.session.oauthState = uuidv4();
     var authUrl = 'https://github.com/login/oauth/authorize?';
     authUrl += "client_id=" + encodeURIComponent(client_id);
     authUrl += "&redirect_uri=" + encodeURIComponent(webRootUrl + getCode_redirect_uri);
-    authUrl += "&state=" + "abcdefg";
+    authUrl += "&state=" + req.session.oauthState;
     res.redirect(authUrl);
 });
 
-//github重定向到redirect_uri，并回传code
+//github重定向回redirect_uri，并回传code和state
 app.get(getCode_redirect_uri, function(req, res) {
-    var response = {
-        "code": req.query.code,
-        "state": req.query.state
+    if (req.session.oauthState !== req.query.state) {
+        res.redirect("/");
+        return;
     };
     var tokenReq = {
         "client_id": client_id,
