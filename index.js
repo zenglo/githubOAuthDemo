@@ -4,6 +4,7 @@ var qs = require('querystring')
 var app = express();
 
 app.use(express.static('public'));
+app.set("json spaces", 2)
 
 var client_id = "00257d0ff6c59880804c"; //注册github OAuth App时获得的client id
 var client_secret = "ae5b85b761c26e16b43f70f1a7046299f6ee2537"; //注册github OAuth App时获得的client secret
@@ -50,9 +51,13 @@ app.get(getCode_redirect_uri, function(req, res) {
                 'User-Agent': app_UserAgent
             }
         }, function(e, r, body) {
-            var tokenObj = JSON.parse(body);
-            console.log(tokenObj);
-            res.send(tokenObj);
+            var userObj = JSON.parse(body);
+            console.log(userObj);
+            var result = {
+                msg: "登录成功！！！",
+                user: userObj
+            }
+            res.json(result);
         });
     });
 });
