@@ -1,5 +1,5 @@
-# github OAuth Demo
-A github oauth demo written by nodejs，based on express framework.
+# Github OAuth Demo
+A Github oauth demo written by nodejs，based on express framework.
 [demo web](http://oauthtest.zenglong.top:8085/)
 
 #### Here's the AD
