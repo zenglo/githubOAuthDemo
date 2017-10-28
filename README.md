@@ -1,6 +1,6 @@
 # Github OAuth Demo
-A Github oauth demo written by nodejs，based on express framework.
-[demo web](http://oauthtest.zenglong.top:8085/)
+A simple Github oauth demo written by nodejs, based on express framework.
+[Online Demo](http://oauthtest.zenglong.top:8085/)
 
 #### Here's the AD
 <a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/q6NFtNujicHJPWrvRTPNrD5i/zenglo/githubOAuthDemo'>
