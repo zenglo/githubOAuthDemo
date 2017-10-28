@@ -18,7 +18,6 @@ var webRootUrl = "http://oauthtest.zenglong.top:8085"; //注册github OAuth App�
 
 var getCode_redirect_uri = '/oauthcode.do';
 var app_UserAgent = "OAuthDemo"
-
 app.get('/', function (req, res) {
     if (isLogin(req)) {
         return res.redirect("/user");
@@ -42,8 +41,26 @@ app.get('/user', function (req, res) {
 })
 
 app.get('/logout', function (req, res) {
-    logout(req);
-    res.redirect("/");
+    if (!isLogin(req)) {
+        return res.redirect("/");
+    }
+    var loginInfo = getLoginInfo(req);
+    request.delete({
+        url: "https://api.github.com/applications/" + client_id + "/grants/" + loginInfo.token.access_token,
+        headers: {
+            'User-Agent': app_UserAgent
+        },
+        auth: {
+            'user': client_id,
+            'pass': client_secret
+        }
+    }, function (err, r, body) {
+        if (err) {
+            console.error('failed:', err);
+        }
+        logout(req);
+        res.redirect("/");
+    });
 })
 
 app.get('/githubLogin.do', function (req, res) {
